@@ -1026,7 +1026,7 @@ jobs:
 
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: postgres
         options: >-
@@ -1593,12 +1593,13 @@ export class HealthController {
   private async checkGoogleAI() {
     // Verify Google AI API is reachable
     try {
-      await fetch(`https://generativelanguage.googleapis.com/v1beta/models`, {
-        headers: { 'x-goog-api-key': process.env.GOOGLE_API_KEY || '' },
-      });
-      return { googleAI: { status: 'up' } };
+      // Health check via Vertex AI — ADC authentication (no API key needed)
+      await fetch(
+        `https://${process.env.GCP_LOCATION ?? 'europe-west1'}-aiplatform.googleapis.com/v1/projects/${process.env.GCP_PROJECT_ID}/locations/${process.env.GCP_LOCATION ?? 'europe-west1'}/publishers/google/models`,
+      );
+      return { vertexAI: { status: 'up' } };
     } catch {
-      return { googleAI: { status: 'down' } };
+      return { vertexAI: { status: 'down' } };
     }
   }
 }

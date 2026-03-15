@@ -22,7 +22,7 @@ Este caso de uso describe el proceso de Recuperación Generativa Aumentada (RAG)
 
 **c. Generación de Embedding**: La consulta se envía a Google Genkit, que utiliza un modelo de embedding para convertir el texto en un vector numérico.
 
-**d. Búsqueda Semántica**: Se realiza una consulta en Cloud SQL (pgvector) para encontrar los fragmentos (chunks) de documentos más relevantes dentro de ese sector.
+**d. Búsqueda Semántica**: Se realiza una consulta en **Pinecone** (vector store externo) para encontrar los fragmentos (chunks) de documentos más relevantes dentro de ese sector.
 
 **e. Aumentación del Prompt**: Genkit construye un prompt que incluye:
    - Las instrucciones del sistema (System Prompt).
@@ -44,7 +44,7 @@ sequenceDiagram
     participant FE as Frontend (Next.js)
     participant BE as Backend (NestJS)
     participant GK as Google Genkit
-    participant DB as Cloud SQL (pgvector)
+    participant DB as Pinecone (vector store)
     participant AI as Gemini 1.5 Pro
 
     User->>FE: Escribe duda: "¿Cómo pido vacaciones?"
@@ -80,7 +80,7 @@ sequenceDiagram
 
 2. **Orquestación con Genkit**: Se utiliza Google Genkit para gestionar el "Flow". Genkit se encarga de llamar al modelo de embeddings y coordinar la búsqueda.
 
-3. **Búsqueda Vectorial (RAG)**: Se realiza una consulta semántica en pgvector filtrando por el `sector_id`. Esto asegura que la IA no "alucine" con información de otros departamentos.
+3. **Búsqueda Vectorial (RAG)**: Se realiza una consulta semántica en **Pinecone** (por namespace/sector) filtrando por el `sector_id`. Esto asegura que la IA no "alucine" con información de otros departamentos.
 
 4. **Generación con Modelo**: Gemini 2.5 Flash recibe el contexto recuperado. Gracias a su amplia ventana de contexto, puede procesar múltiples fragmentos para dar una respuesta precisa.
 

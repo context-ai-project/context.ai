@@ -103,7 +103,7 @@ Configurar Zustand para manejar el estado global del chat: mensajes, conversaci�
 - [ ] Acciones: sendMessage, addMessage, setLoading, setError, clearMessages
 - [ ] Persistencia opcional de conversación en localStorage
 - [ ] Tests unitarios del store con al menos 80% coverage
-- [ ] Integración correcta de tipos desde `@context-ai/shared`
+- [ ] Integración correcta de tipos desde `@context-ai-project/shared`
 
 ### Files to Create — `[ACTUALIZACIÓN]` Rutas reales:
 
@@ -270,7 +270,7 @@ Crear cliente API con axios para comunicarse con el backend, incluyendo intercep
 - [ ] Interceptor de respuesta para manejo global de errores
 - [ ] Función `sendChatMessage` que consume endpoint POST /api/chat/query
 - [ ] Función `getConversations` para historial
-- [ ] Tipos de respuesta basados en `@context-ai/shared`
+- [ ] Tipos de respuesta basados en `@context-ai-project/shared`
 - [ ] Manejo de errores de red y timeouts
 - [ ] Tests con mock de axios
 

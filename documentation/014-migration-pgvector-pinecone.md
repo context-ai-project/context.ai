@@ -11,6 +11,8 @@ related_docs:
 
 # Migración de pgvector a Pinecone
 
+> **Estado:** Esta migración está **completada**. El proyecto usa **solo Pinecone** para almacenamiento y búsqueda vectorial; PostgreSQL no incluye la extensión pgvector ni columnas de embeddings. Este documento se mantiene como referencia histórica y de diseño.
+
 ## 1. Resumen Ejecutivo
 
 ### Objetivo
@@ -126,7 +128,7 @@ async vectorSearch(
 
 **Archivo:** `src/modules/knowledge/infrastructure/services/embedding.service.ts`
 
-- Modelo: `googleai/gemini-embedding-001`
+- Modelo: `vertexai/gemini-embedding-001`
 - Dimensiones: 3072 (por defecto)
 - Task types: `RETRIEVAL_DOCUMENT` (indexación) y `RETRIEVAL_QUERY` (búsqueda)
 - **Este servicio NO cambia** — sigue generando embeddings con Genkit/Gemini
@@ -137,7 +139,7 @@ async vectorSearch(
 
 ```typescript
 export const GENKIT_CONFIG = {
-  EMBEDDING_MODEL: 'googleai/gemini-embedding-001',
+  EMBEDDING_MODEL: 'vertexai/gemini-embedding-001',
   EMBEDDING_DIMENSIONS: 3072,
   // ...
 };
@@ -885,7 +887,7 @@ PINECONE_ENVIRONMENT=us-east-1  # o gcp-starter para free tier
 ```
 
 Agregar a:
-- `env-template.txt`
+- `.env.example`
 - `.env` local
 - Variables de entorno en Cloud Run / Railway
 - GitHub Secrets para CI/CD

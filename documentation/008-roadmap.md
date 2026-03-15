@@ -324,7 +324,7 @@ describe('Database Connection', () => {
       runs-on: ubuntu-latest
       services:
         postgres:
-          image: pgvector/pgvector:pg16
+          image: postgres:16-alpine
           env:
             POSTGRES_DB: contextai_test
             POSTGRES_PASSWORD: test_password
@@ -1276,7 +1276,7 @@ import { embed } from '@genkit-ai/ai';
 
 @Injectable()
 export class EmbeddingService {
-  // Usa googleai/gemini-embedding-001 configurado en genkit.config.ts
+  // Usa vertexai/gemini-embedding-001 configurado en genkit.config.ts
   // Dimensión: 3072
 
   async generateEmbedding(
@@ -1284,7 +1284,7 @@ export class EmbeddingService {
     taskType: EmbeddingTaskType = EmbeddingTaskType.RETRIEVAL_DOCUMENT
   ): Promise<number[]> {
     const result = await embed({
-      embedder: 'googleai/gemini-embedding-001',
+      embedder: 'vertexai/gemini-embedding-001',
       content: text,
       options: { taskType },
     });
@@ -1624,10 +1624,10 @@ describe('RAGQueryFlow', () => {
 
 **🟢 GREEN - Implementation**:
 ```typescript
-// [ACTUALIZACIÓN] Modelo real: googleai/gemini-2.5-flash (no gemini-1.5-pro)
+// [ACTUALIZACIÓN] Modelo real: vertexai/gemini-2.5-flash (no gemini-1.5-pro)
 // src/shared/genkit/flows/rag-query.flow.ts
 import { ai } from '@genkit-ai/core';
-import { gemini25Flash } from '@genkit-ai/googleai';
+import { gemini25Flash } from '@genkit-ai/google-genai'; // vertexAI backend
 
 export const ragQueryFlow = ai.defineFlow(
   {
@@ -1952,7 +1952,7 @@ export class SendMessageUseCase {
       content: ragResult.answer,
       sourcesUsed: ragResult.sources,
       metadata: {
-        model: 'googleai/gemini-2.5-flash',
+        model: 'vertexai/gemini-2.5-flash',
         latencyMs: ragResult.latencyMs,
         tokensUsed: ragResult.tokensUsed,
         faithfulnessScore: ragResult.evaluations.faithfulness,
@@ -2232,7 +2232,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}  # Vertex AI usa ADC del service account
     ports:
       - "3001:3001"
     depends_on:

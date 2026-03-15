@@ -639,8 +639,8 @@ graph LR
 - **Database**: PostgreSQL 16 (datos relacionales)
 - **Vector Store**: Pinecone (embeddings y búsqueda semántica)
 - **AI Orchestration**: Google Genkit (^1.28.0)
-- **LLM**: Gemini 2.5 Flash (`googleai/gemini-2.5-flash`)
-- **Embeddings**: gemini-embedding-001 (`googleai/gemini-embedding-001`, 3072 dimensiones)
+- **LLM**: Gemini 2.5 Flash (`vertexai/gemini-2.5-flash`) — via Vertex AI (ADC)
+- **Embeddings**: gemini-embedding-001 (`vertexai/gemini-embedding-001`, 3072 dimensiones) — via Vertex AI (ADC)
 - **Auth**: Auth0 (JWT validation con JWKS via Passport-JWT)
 - **Security**: Helmet, express-rate-limit, @nestjs/throttler, eslint-plugin-security
 - **Validation**: class-validator, class-transformer, Zod

@@ -469,7 +469,7 @@ Cada fragmento de documento se almacena como un vector en Pinecone:
 ```
 
 - **Dimensiones**: 3072 (gemini-embedding-001)
-- **Modelo de embedding**: `googleai/gemini-embedding-001`
+- **Modelo de embedding**: `vertexai/gemini-embedding-001`
 - **Métrica de similitud**: Cosine similarity
 - **Filtrado**: Por `sectorId` en metadata (aislamiento por sector)
 

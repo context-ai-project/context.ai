@@ -13,6 +13,8 @@ github_label: "phase-6b"
 
 # Fase 6B: Migración de pgvector a Pinecone
 
+> **Estado:** Fase **completada**. El proyecto usa únicamente **Pinecone** como vector store; no se usa pgvector en PostgreSQL.
+
 Fase anexa entre la Fase 6 (Autenticación y Autorización) y la Fase 7 (Testing e Integración). Se crea como **Fase 6B** para no alterar la numeración existente de fases, manteniendo la trazabilidad del proyecto.
 
 ## Contexto y Justificación
@@ -78,7 +80,7 @@ Crear cuenta en Pinecone, configurar el índice, instalar el SDK, y crear la int
 
 - [ ] Cuenta de Pinecone creada en [pinecone.io](https://www.pinecone.io/)
 - [ ] Índice `context-ai` creado con dimensions=3072, metric=cosine
-- [ ] API key obtenida y añadida a `env-template.txt`
+- [ ] API key obtenida y añadida a `.env.example`
 - [ ] Paquete `@pinecone-database/pinecone` instalado
 - [ ] Interfaz `IVectorStore` creada en capa de dominio
 - [ ] Tipos `VectorUpsertInput` y `VectorSearchResult` definidos
@@ -88,7 +90,7 @@ Crear cuenta en Pinecone, configurar el índice, instalar el SDK, y crear la int
 
 ```
 src/modules/knowledge/domain/services/vector-store.interface.ts   # IVectorStore interface
-env-template.txt                                                   # Add PINECONE_* vars
+.env.example                                                   # Add PINECONE_* vars
 ```
 
 ### Technical Notes
@@ -424,7 +426,7 @@ Actualizar el pipeline de GitHub Actions CI/CD y la configuración Docker para e
 - [ ] API key de Pinecone añadida como GitHub Secret
 - [ ] Tests de CI pasan con PostgreSQL estándar (sin extensión vector)
 - [ ] Documentación de variables de entorno actualizada
-- [ ] `env-template.txt` incluye todas las variables de Pinecone
+- [ ] `.env.example` incluye todas las variables de Pinecone
 
 ### Files to Modify
 
@@ -432,7 +434,7 @@ Actualizar el pipeline de GitHub Actions CI/CD y la configuración Docker para e
 .github/workflows/ci.yml          # Actualizar imagen postgres service
 docker-compose.yml                  # Actualizar imagen postgres service
 scripts/init-db.sql                 # Eliminar extensión vector
-env-template.txt                    # Añadir variables PINECONE_*
+.env.example                    # Añadir variables PINECONE_*
 ```
 
 ### Technical Notes

@@ -152,12 +152,12 @@ docker --version  # Debe ser >= 20.x
 El API tiene una dependencia local:
 
 ```json
-"@context-ai/shared": "link:../context-ai-shared"
+"@context-ai-project/shared": "^0.1.0"
 ```
 
 Esto **no funciona en producción** (no hay monorepo en el servidor). Opciones:
 
-#### Opción A: Publicar en GitHub Packages (Recomendada)
+#### Publicar en GitHub Packages
 
 ```bash
 cd context-ai-shared
@@ -170,27 +170,16 @@ npm publish --registry=https://npm.pkg.github.com
 Luego en `context-ai-api/package.json`:
 
 ```json
-"@context-ai/shared": "^0.1.0"
+"@context-ai-project/shared": "^0.1.0"
 ```
 
 Y crear `.npmrc`:
 
 ```
-@context-ai:registry=https://npm.pkg.github.com
+@context-ai-project:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
-#### Opción B: Copiar el build al API (Más simple para TFM)
-
-En el Dockerfile del API:
-
-```dockerfile
-# Copiar shared package primero
-COPY context-ai-shared/dist ./node_modules/@context-ai/shared/dist
-COPY context-ai-shared/package.json ./node_modules/@context-ai/shared/package.json
-```
-
-#### Opción C: Bundlear shared en el build del API
 
 Modificar el build del API para incluir shared inline:
 
@@ -199,14 +188,11 @@ Modificar el build del API para incluir shared inline:
 {
   "compilerOptions": {
     "paths": {
-      "@context-ai/shared": ["../context-ai-shared/src"]
+      "@context-ai-project/shared": ["../context-ai-shared/src"]
     }
   }
 }
 ```
-
-> **Recomendación para TFM:** Opción A (GitHub Packages) es la más limpia y profesional.
-
 ---
 
 ## 4. Configuración de Neon PostgreSQL
@@ -242,7 +228,7 @@ DATABASE_URL="postgresql://..." pnpm migration:run
 
 ```bash
 # Para Cloud Run (API)
-DB_HOST=ep-xxxx.us-east-1.aws.neon.tech
+DB_HOST=ep-xxxx.eu-central-1.aws.neon.tech
 DB_PORT=5432
 DB_USERNAME=your_neon_user
 DB_PASSWORD=your_neon_password
@@ -528,11 +514,11 @@ dist
 # Crear repositorio de imágenes Docker
 gcloud artifacts repositories create context-ai \
   --repository-format=docker \
-  --location=us-central1 \
+  --location=europe-west1 \
   --description="Context AI Docker images"
 
 # Configurar Docker para usar Artifact Registry
-gcloud auth configure-docker us-central1-docker.pkg.dev
+gcloud auth configure-docker europe-west1-docker.pkg.dev
 ```
 
 ### 7.4 Build y Push de la Imagen
@@ -541,17 +527,17 @@ gcloud auth configure-docker us-central1-docker.pkg.dev
 cd context-ai-api
 
 # Build imagen
-docker build -t us-central1-docker.pkg.dev/context-ai-prod/context-ai/api:latest .
+docker build -t europe-west1-docker.pkg.dev/context-ai-prod/context-ai/api:latest .
 
 # Push a Artifact Registry
-docker push us-central1-docker.pkg.dev/context-ai-prod/context-ai/api:latest
+docker push europe-west1-docker.pkg.dev/context-ai-prod/context-ai/api:latest
 ```
 
 **O usar Cloud Build (recomendado):**
 
 ```bash
 # Build directamente en Google Cloud
-gcloud builds submit --tag us-central1-docker.pkg.dev/context-ai-prod/context-ai/api:latest
+gcloud builds submit --tag europe-west1-docker.pkg.dev/context-ai-prod/context-ai/api:latest
 ```
 
 ### 7.5 Configurar Secrets en Secret Manager
@@ -559,7 +545,7 @@ gcloud builds submit --tag us-central1-docker.pkg.dev/context-ai-prod/context-ai
 ```bash
 # Crear secrets
 echo -n "your-db-password" | gcloud secrets create DB_PASSWORD --data-file=-
-echo -n "your-google-api-key" | gcloud secrets create GOOGLE_API_KEY --data-file=-
+# Vertex AI usa ADC del service account de Cloud Run — no requiere secret para GOOGLE_API_KEY
 echo -n "your-pinecone-api-key" | gcloud secrets create PINECONE_API_KEY --data-file=-
 echo -n "your-auth0-domain" | gcloud secrets create AUTH0_DOMAIN --data-file=-
 echo -n "your-auth0-audience" | gcloud secrets create AUTH0_AUDIENCE --data-file=-
@@ -570,8 +556,8 @@ echo -n "your-sentry-dsn" | gcloud secrets create SENTRY_DSN --data-file=-
 
 ```bash
 gcloud run deploy context-ai-api \
-  --image=us-central1-docker.pkg.dev/context-ai-prod/context-ai/api:latest \
-  --region=us-central1 \
+  --image=europe-west1-docker.pkg.dev/context-ai-prod/context-ai/api:latest \
+  --region=europe-west1 \
   --platform=managed \
   --allow-unauthenticated \
   --port=3001 \
@@ -595,7 +581,7 @@ gcloud run deploy context-ai-api \
   --set-env-vars="RATE_LIMIT_WINDOW_MS=60000" \
   --set-env-vars="RATE_LIMIT_MAX_REQUESTS=100" \
   --set-secrets="DB_PASSWORD=DB_PASSWORD:latest" \
-  --set-secrets="GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
+  --set-env-vars="GCP_PROJECT_ID=context-ai-production" \
   --set-secrets="PINECONE_API_KEY=PINECONE_API_KEY:latest" \
   --set-secrets="AUTH0_DOMAIN=AUTH0_DOMAIN:latest" \
   --set-secrets="AUTH0_AUDIENCE=AUTH0_AUDIENCE:latest" \
@@ -609,7 +595,7 @@ gcloud run deploy context-ai-api \
 gcloud beta run domain-mappings create \
   --service=context-ai-api \
   --domain=api.contextai.com \
-  --region=us-central1
+  --region=europe-west1
 ```
 
 Configurar DNS:
@@ -759,21 +745,21 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev
 
       - name: Build and Push Docker image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }} .
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:latest .
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }}
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:latest
+          docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }} .
+          docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:latest .
+          docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }}
+          docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:latest
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: context-ai-api
-          region: us-central1
-          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }}
+          region: europe-west1
+          image: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/context-ai/api:${{ github.sha }}
           env_vars: |
             NODE_ENV=production
             PORT=3001
@@ -784,7 +770,7 @@ jobs:
 
       - name: Smoke Test
         run: |
-          URL=$(gcloud run services describe context-ai-api --region=us-central1 --format='value(status.url)')
+          URL=$(gcloud run services describe context-ai-api --region=europe-west1 --format='value(status.url)')
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/v1/health")
           if [ "$STATUS" != "200" ]; then
             echo "❌ Health check failed with status $STATUS"
@@ -840,7 +826,7 @@ Los secrets de aplicación (DB_PASSWORD, API keys, etc.) se gestionan directamen
 | `DB_PASSWORD` | `xxx` | **Secret** |
 | `DB_DATABASE` | `contextai` | Env var |
 | `DB_SSL_REJECT_UNAUTHORIZED` | `false` | Env var |
-| `GOOGLE_API_KEY` | `xxx` | **Secret** |
+| `GCP_PROJECT_ID` | `context-ai-production` | Env var |
 | `PINECONE_API_KEY` | `xxx` | **Secret** |
 | `PINECONE_INDEX` | `context-ai` | Env var |
 | `AUTH0_DOMAIN` | `your-tenant.auth0.com` | Env var |
@@ -1018,7 +1004,7 @@ Neon incluye:
 # Mantener 1 instancia siempre activa (~$10/mes)
 gcloud run services update context-ai-api \
   --min-instances=1 \
-  --region=us-central1
+  --region=europe-west1
 ```
 
 ### Problema: Cold starts en Neon PostgreSQL
@@ -1044,14 +1030,14 @@ gcloud run services update context-ai-api \
 - `Allowed Logout URLs` incluye `https://app.contextai.com`
 - `Allowed Web Origins` incluye `https://app.contextai.com`
 
-### Problema: Build falla por @context-ai/shared
+### Problema: Build falla por @context-ai-project/shared
 
-**Síntoma:** `Cannot find module '@context-ai/shared'` durante docker build.
+**Síntoma:** `Cannot find module '@context-ai-project/shared'` durante docker build.
 
 **Solución:** Publicar shared package en GitHub Packages o incluir en Dockerfile:
 ```dockerfile
-COPY context-ai-shared/dist ./node_modules/@context-ai/shared/dist
-COPY context-ai-shared/package.json ./node_modules/@context-ai/shared/package.json
+COPY context-ai-shared/dist ./node_modules/@context-ai-project/shared/dist
+COPY context-ai-shared/package.json ./node_modules/@context-ai-project/shared/package.json
 ```
 
 ### Problema: Neon SSL connection error

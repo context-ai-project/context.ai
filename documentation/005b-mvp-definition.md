@@ -365,8 +365,8 @@ Un feature del MVP se considera **DONE** cuando:
 **Integraciones**:
 - Auth0 (validación JWT con JWKS via Passport-JWT)
 - Google Genkit (^1.28.0) — orquestación IA
-- **Gemini 2.5 Flash** (`googleai/gemini-2.5-flash`) — LLM
-- **gemini-embedding-001** (`googleai/gemini-embedding-001`, 3072 dimensiones) — Embeddings
+- **Gemini 2.5 Flash** (`vertexai/gemini-2.5-flash`) — LLM via Vertex AI (ADC)
+- **gemini-embedding-001** (`vertexai/gemini-embedding-001`, 3072 dimensiones) — Embeddings via Vertex AI (ADC)
 - **Pinecone** (`@pinecone-database/pinecone`) — Vector Store
 - RAG Evaluators — `RagEvaluatorService` (LLM-as-judge: Faithfulness, Relevancy)
 

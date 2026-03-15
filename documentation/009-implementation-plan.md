@@ -1,6 +1,6 @@
 ---
 name: Context.ai MVP Setup
-overview: "Plan completo para desarrollar el MVP de Context.ai usando TDD (Test-Driven Development): crear documentación técnica crítica, configurar la arquitectura backend/frontend, e implementar el flujo RAG + Chat funcional siguiendo el ciclo Red-Green-Refactor. NOTA: Este plan fue actualizado (Feb 2026) para reflejar cambios en tecnologías: Gemini 2.5 Flash (LLM), gemini-embedding-001 (embeddings, 3072d), Pinecone (vector store), NextAuth.js v5 (auth frontend), Jest (backend testing), Playwright (E2E frontend)."
+overview: "Plan completo para desarrollar el MVP de Context.ai usando TDD (Test-Driven Development): crear documentación técnica crítica, configurar la arquitectura backend/frontend, e implementar el flujo RAG + Chat funcional siguiendo el ciclo Red-Green-Refactor. NOTA: Este plan fue actualizado (Feb 2026) para reflejar cambios en tecnologías: Gemini 2.5 Flash (LLM), gemini-embedding-001 (embeddings, 3072d), Pinecone (vector store), NextAuth.js v5 (auth frontend), Jest (backend testing), Playwright (E2E frontend). El proyecto **no usa pgvector**; el vector store en producción es **Pinecone**."
 todos:
   - id: docs-architecture
     content: Crear 005-arquitectura-tecnica.md con diagramas y estructura
@@ -44,13 +44,13 @@ todos:
     dependencies:
       - setup-shared-structure
   - id: setup-backend-deps
-    content: Inicializar NestJS con pnpm, TypeScript y dependencias core incluyendo @context-ai/shared
+    content: Inicializar NestJS con pnpm, TypeScript y dependencias core incluyendo @context-ai-project/shared
     status: pending
     dependencies:
       - setup-backend-structure
       - setup-shared-package
   - id: setup-frontend-deps
-    content: Inicializar Next.js con pnpm, App Router, Tailwind CSS y @context-ai/shared
+    content: Inicializar Next.js con pnpm, App Router, Tailwind CSS y @context-ai-project/shared
     status: pending
     dependencies:
       - setup-frontend-structure
@@ -399,7 +399,7 @@ context-ai-front/
 └── package.json
 ```
 
-**Gestión de DTOs compartidos:**Los DTOs y tipos se centralizan en `context-ai-shared` y se publican como paquete npm privado `@context-ai/shared`.**Publicación:** GitHub Packages (vinculado al repositorio de GitHub) usando pnpm.**¿Por qué pnpm?**
+**Gestión de DTOs compartidos:**Los DTOs y tipos se centralizan en `context-ai-shared` y se publican como paquete npm privado `@context-ai-project/shared`.**Publicación:** GitHub Packages (vinculado al repositorio de GitHub) usando pnpm.**¿Por qué pnpm?**
 
 - Espacio en disco: Usa enlaces simbólicos y un store global (ahorra ~50% de espacio)
 - Velocidad: Instalaciones paralelas más rápidas que npm
@@ -412,7 +412,7 @@ context-ai-front/
 
 ```json
 {
-  "name": "@context-ai/shared",
+  "name": "@context-ai-project/shared",
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -433,7 +433,7 @@ context-ai-front/
 
 **⚠️ NOTA IMPORTANTE - Estrategia de Publicación:**
 
-Durante el desarrollo del MVP, **NO publicaremos** `@context-ai/shared` a GitHub Packages. En su lugar:
+Durante el desarrollo del MVP, **NO publicaremos** `@context-ai-project/shared` a GitHub Packages. En su lugar:
 - Usaremos `pnpm link` para desarrollo local
 - O configuraremos un monorepo con workspaces
 - **La publicación a GitHub Packages se realizará AL FINALIZAR EL MVP**
@@ -455,7 +455,7 @@ pnpm publish --access public
 **`.npmrc` en la raíz de cada proyecto para consumir el paquete (POST-MVP):**
 
 ```javascript
-@context-ai:registry=https://npm.pkg.github.com
+@context-ai-project:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
@@ -500,7 +500,7 @@ pnpm dlx @nestjs/cli new context-ai-api --package-manager pnpm
 # Instalar dependencias core
 pnpm add @nestjs/core @nestjs/common @nestjs/config
 pnpm add @nestjs/typeorm typeorm pg
-pnpm add @genkit-ai/core @genkit-ai/googleai    # Genkit para RAG
+pnpm add @genkit-ai/core @genkit-ai/google-genai  # Genkit para RAG (Vertex AI backend, usa ADC)
 pnpm add @pinecone-database/pinecone             # [ACTUALIZACIÓN] Vector store (reemplaza pgvector)
 pnpm add jwks-rsa                                 # JWT validation con JWKS
 pnpm add @nestjs/passport passport passport-jwt   # Passport JWT strategy
@@ -509,7 +509,7 @@ pnpm add helmet express-rate-limit                # Security
 pnpm add pdf-parse                                # [ACTUALIZACIÓN] PDF parsing
 pnpm add zod                                      # Schema validation
 pnpm add winston nest-winston                     # Logging
-pnpm add @context-ai/shared@latest
+pnpm add @context-ai-project/shared@latest
 
 # Dependencias de desarrollo
 pnpm add -D @types/node @types/passport typescript
@@ -534,7 +534,7 @@ pnpm add lucide-react                               # Icons
 pnpm add react-markdown remark-gfm react-syntax-highlighter  # Markdown rendering
 pnpm add date-fns                                   # Date formatting
 pnpm add @sentry/nextjs                             # Error tracking
-pnpm add @context-ai/shared@latest
+pnpm add @context-ai-project/shared@latest
 
 # UI components via shadcn/ui (CLI)
 pnpm dlx shadcn@latest init
@@ -1493,11 +1493,11 @@ pnpm link --global
 
 # 2. En context-ai-api
 cd ../context-ai-api
-pnpm link --global @context-ai/shared
+pnpm link --global @context-ai-project/shared
 
 # 3. En context-ai-front
 cd ../context-ai-front
-pnpm link --global @context-ai/shared
+pnpm link --global @context-ai-project/shared
 
 # Ahora cualquier cambio en shared se refleja inmediatamente en api/front
 ```
@@ -1506,7 +1506,7 @@ pnpm link --global @context-ai/shared
 
 1. **Definir DTOs**: Crear/actualizar DTOs en `context-ai-shared/src/dto/`
 2. **Publicar nueva versión**: `pnpm version patch && pnpm publish` en `context-ai-shared`
-3. **Actualizar dependencia**: `pnpm update @context-ai/shared` en backend y frontend
+3. **Actualizar dependencia**: `pnpm update @context-ai-project/shared` en backend y frontend
 4. **Versionado**: Usar semantic versioning (patch para fixes, minor para features, major para breaking changes)
 
 **Flujo de trabajo (POST-MVP):**
@@ -1520,11 +1520,11 @@ pnpm publish
 
 # 2. Actualizar en backend
 cd ../context-ai-api
-pnpm update @context-ai/shared
+pnpm update @context-ai-project/shared
 
 # 3. Actualizar en frontend
 cd ../context-ai-front
-pnpm update @context-ai/shared
+pnpm update @context-ai-project/shared
 ```
 
 **Ejemplo de uso:** — `[ACTUALIZACIÓN]` Usa Zod en lugar de class-validator:
@@ -1549,11 +1549,11 @@ export enum SourceType {
 }
 
 // En context-ai-api (Backend)
-import { SourceType } from '@context-ai/shared';
+import { SourceType } from '@context-ai-project/shared';
 // Backend usa class-validator para DTOs de controller, shared para enums/types
 
 // En context-ai-front (Frontend)
-import { SourceType, MessageRole } from '@context-ai/shared';
+import { SourceType, MessageRole } from '@context-ai-project/shared';
 // Frontend importa enums y tipos compartidos
 ```
 
@@ -1638,7 +1638,7 @@ Opciones Vector Store:
 
 Una vez validado el MVP:
 
-1. **📦 Publicar `@context-ai/shared` en GitHub Packages**
+1. **📦 Publicar `@context-ai-project/shared` en GitHub Packages**
    - Crear GitHub Personal Access Token con scope `write:packages`
    - Publicar versión 0.1.0 como paquete público (o privado según decisión)
    - Actualizar `context-ai-api` y `context-ai-front` para consumir desde GitHub Packages
