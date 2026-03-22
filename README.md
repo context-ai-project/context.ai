@@ -17,8 +17,6 @@ Este **proyecto** nace como el Trabajo de Fin de Máster del **Máster en Desarr
 
 Este README y la carpeta **`documentation/`** son el punto de entrada para el setup y la documentación del proyecto. Los repositorios **context-ai-api**, **context-ai-front** y **context-ai-shared** se clonan en la misma raíz (por ejemplo `Context.ai/`). Las guías técnicas del backend están en **`context-ai-api/docs/`** (Auth0, base de datos, variables de entorno, etc.).
 
-**Si es tu primer día:** asegúrate de tener también este README y la carpeta `documentation/`. En muchas organizaciones viven en un repositorio aparte (por ejemplo **Context.ia**); pregunta a tu equipo por la URL y clónalo primero. Si solo tienes clonados los tres repos sin esta carpeta padre, los enlaces relativos a la documentación no resolverán.
-
 ---
 
 ## 🛠️ Stack Tecnológico
